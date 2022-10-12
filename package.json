@@ -3,8 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.10.4",
+    "@emotion/styled": "^11.10.4",
+    "@mui/material": "^5.10.9",
+    "@mui/styled-engine-sc": "^5.10.6",
+    "@mui/x-data-grid": "^5.17.6",
     "@reduxjs/toolkit": "^1.8.5",
-    "@syncfusion/ej2-react-grids": "^19.4.50",
+    "@syncfusion/ej2": "^19.4.48",
+    "@syncfusion/ej2-react-grids": "^19.4.56",
     "@syncfusion/ej2-react-popups": "^19.4.52",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -17,7 +23,7 @@
     "react-redux": "^8.0.4",
     "react-router-dom": "^6.4.1",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4",
+    "styled-components": "^5.3.6",
     "yup": "^0.32.11"
   },
   "scripts": {

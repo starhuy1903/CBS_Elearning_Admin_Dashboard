@@ -18,6 +18,7 @@ export const login = createAsyncThunk(
       localStorage.setItem("token", res.data.accessToken);
       return profile;
     } catch (err) {
+      console.log(err);
       return rejectWithValue(err.response.data);
     }
   }
