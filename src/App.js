@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import EditUser from "./pages/EditUser";
 import Register from "./pages/Register";
 import Users from "./pages/Users";
+import UserDetail from "./pages/UserDetail";
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
           <Route path="users">
             <Route index element={<Users />}></Route>
             <Route path="add" element={<EditUser />}></Route>
+            <Route path="detail" element={<UserDetail />}></Route>
           </Route>
           <Route path="courses" element={<Courses />} />
           <Route path="register" element={<Register />} />

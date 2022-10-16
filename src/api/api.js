@@ -85,4 +85,34 @@ export const deleteUser = async (username) => {
   }
 };
 
+export const findUserByUsername = async (searchTerm, setUsers) => {
+  try {
+    const res = await api.request({
+      url: "/api/QuanLyNguoiDung/TimKiemNguoiDung",
+      method: "GET",
+      params: {
+        MaNhom: "GP02",
+        tuKhoa: searchTerm,
+      },
+    });
+    setUsers(res.data.map((user, index) => ({ ...user, id: index + 1 })));
+    // return res.data.map((user, index) => ({ ...user, id: index + 1 }));
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getUserList = async (setUsers) => {
+  try {
+    const res = await api.request({
+      url: "/api/QuanLyNguoiDung/LayDanhSachNguoiDung",
+      method: "GET",
+    });
+    setUsers(res.data.map((user, index) => ({ ...user, id: index + 1 })));
+    // return res.data.map((user, index) => ({ ...user, id: index + 1 }));
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 export default api;

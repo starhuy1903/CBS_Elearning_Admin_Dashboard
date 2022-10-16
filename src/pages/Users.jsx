@@ -1,23 +1,57 @@
 import React, { useEffect, useState } from "react";
-import api from "../api/api";
+import { deleteUser, findUserByUsername, getUserList } from "../api/api";
 import { DataGrid } from "@mui/x-data-grid";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BsSearch } from "react-icons/bs";
+import {
+  BsSearch,
+  BsEyeFill,
+  BsPencilSquare,
+  BsFillTrashFill,
+} from "react-icons/bs";
+import swal from "sweetalert";
 
 const columns = [
-  { field: "id", headerName: "ID", width: 70 },
-  { field: "taiKhoan", headerName: "Username", width: 180 },
-  { field: "hoTen", headerName: "Full name", width: 200 },
-  { field: "email", headerName: "Email", width: 300 },
+  { field: "id", headerName: "ID", width: 40 },
+  { field: "taiKhoan", headerName: "Username", width: 130 },
+  { field: "hoTen", headerName: "Full name", width: 150 },
+  { field: "email", headerName: "Email", width: 230 },
   {
     field: "soDt",
     headerName: "Phone",
-    width: 150,
+    width: 130,
   },
   {
     field: "maLoaiNguoiDung",
     headerName: "User Type",
     width: 80,
+    align: "center",
+  },
+  {
+    field: "view",
+    headerName: "View",
+    width: 50,
+    renderCell: () => (
+      <BsEyeFill className="text-xl text-green-500 hover:cursor-pointer" />
+    ),
+    align: "center",
+  },
+  {
+    field: "edit",
+    headerName: "Edit",
+    width: 50,
+    renderCell: () => (
+      <BsPencilSquare className="text-xl text-orange-500 hover:cursor-pointer" />
+    ),
+    align: "center",
+  },
+  {
+    field: "delete",
+    headerName: "Delete",
+    width: 70,
+    renderCell: () => (
+      <BsFillTrashFill className="text-xl text-red-500 hover:cursor-pointer" />
+    ),
+    align: "center",
   },
 ];
 
@@ -29,39 +63,11 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  // console.log(searchTerm);
-
   useEffect(() => {
     if (searchTerm !== "") {
-      const getUserList = async () => {
-        try {
-          const res = await api.request({
-            url: "/api/QuanLyNguoiDung/TimKiemNguoiDung",
-            method: "GET",
-            params: {
-              MaNhom: "GP02",
-              tuKhoa: searchTerm,
-            },
-          });
-          setUsers(res.data.map((user, index) => ({ ...user, id: index + 1 })));
-        } catch (err) {
-          console.log(err);
-        }
-      };
-      getUserList();
+      findUserByUsername(searchTerm, setUsers);
     } else {
-      const getUserList = async () => {
-        try {
-          const res = await api.request({
-            url: "/api/QuanLyNguoiDung/LayDanhSachNguoiDung",
-            method: "GET",
-          });
-          setUsers(res.data.map((user, index) => ({ ...user, id: index + 1 })));
-        } catch (err) {
-          console.log(err);
-        }
-      };
-      getUserList();
+      getUserList(setUsers);
     }
   }, [searchTerm]);
 
@@ -83,10 +89,59 @@ const Users = () => {
     // navigate(`?searchTerm=${value}`);
   }, 1000);
 
+  const handleDelete = (e) => {
+    swal({
+      title: "Warning",
+      text: "Are you sure to delete?",
+      icon: "warning",
+      buttons: {
+        cancel: {
+          text: "Cancel",
+          value: false,
+          visible: true,
+          closeModal: true,
+        },
+        confirm: {
+          text: "OK",
+          value: true,
+          visible: true,
+          closeModal: true,
+        },
+      },
+    }).then((isDeleted) => {
+      if (isDeleted) {
+        (async () => {
+          const res = await deleteUser(e.row.taiKhoan);
+          if (res.status === 200) {
+            if (searchTerm !== "") {
+              findUserByUsername(searchTerm, setUsers);
+            } else {
+              getUserList(setUsers);
+            }
+          }
+        })();
+      }
+    });
+  };
+
+  const handleClick = (e) => {
+    if (e.field === "view") {
+      navigate("/users/detail");
+    } else if (e.field === "edit") {
+      navigate("/users/add", {
+        state: {
+          user: e.row,
+        },
+      });
+    } else if (e.field === "delete") {
+      handleDelete(e);
+    }
+  };
+
   if (!users) return <p>Loading...</p>;
 
   return (
-    <div className="mt-24 md:m-10 p-2 md:p-10 bg-white rounded-3xl">
+    <div className="mt-16 sm:mt-20 md:m-10 p-2 md:p-10 bg-white rounded-3xl">
       <h1 className="text-3xl text-center font-bold my-4">Users Management</h1>
       <div className="flex justify-between my-4 ">
         <button
@@ -112,13 +167,7 @@ const Users = () => {
           columns={columns}
           pageSize={10}
           rowsPerPageOptions={[10]}
-          onRowClick={(e) =>
-            navigate("/users/add", {
-              state: {
-                user: e.row,
-              },
-            })
-          }
+          onCellClick={handleClick}
         />
       </div>
     </div>
