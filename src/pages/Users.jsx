@@ -9,6 +9,7 @@ import {
   BsFillTrashFill,
 } from "react-icons/bs";
 import swal from "sweetalert";
+import { debounce } from "../utils/debounce";
 
 const columns = [
   { field: "id", headerName: "ID", width: 40 },
@@ -70,16 +71,6 @@ const Users = () => {
       getUserList(setUsers);
     }
   }, [searchTerm]);
-
-  const debounce = (cb, delay) => {
-    let timer;
-    return (...args) => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        cb(...args);
-      }, delay);
-    };
-  };
 
   const handleSearch = debounce((e) => {
     const value = e.target.value;

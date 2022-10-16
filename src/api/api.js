@@ -109,7 +109,52 @@ export const getUserList = async (setUsers) => {
       method: "GET",
     });
     setUsers(res.data.map((user, index) => ({ ...user, id: index + 1 })));
-    // return res.data.map((user, index) => ({ ...user, id: index + 1 }));
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getCourseCategories = async (setCategories) => {
+  try {
+    const res = await api.request({
+      url: "/api/QuanLyKhoaHoc/LayDanhMucKhoaHoc",
+      method: "GET",
+      params: {
+        MaNhom: "GP01",
+      },
+    });
+    setCategories(res.data);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getCourseList = async (setCourses) => {
+  try {
+    const res = await api.request({
+      url: "/api/QuanLyKhoaHoc/LayDanhSachKhoaHoc",
+      method: "GET",
+      params: {
+        MaNhom: "GP01",
+      },
+    });
+    setCourses(res.data.map((course, index) => ({ ...course, id: index + 1 })));
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getCourseListByCategory = async (setCourses, category) => {
+  try {
+    const res = await api.request({
+      url: "/api/QuanLyKhoaHoc/LayKhoaHocTheoDanhMuc",
+      method: "GET",
+      params: {
+        maDanhMuc: category,
+        MaNhom: "GP01",
+      },
+    });
+    setCourses(res.data.map((course, index) => ({ ...course, id: index + 1 })));
   } catch (err) {
     console.log(err);
   }
