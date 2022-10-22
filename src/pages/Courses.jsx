@@ -1,11 +1,6 @@
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import {
-  BsSearch,
-  BsEyeFill,
-  BsPencilSquare,
-  BsFillTrashFill,
-} from "react-icons/bs";
+import { BsEyeFill, BsPencilSquare, BsFillTrashFill } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
 import {
   getCourseCategories,
@@ -86,6 +81,16 @@ const Courses = () => {
     getCourseCategories(setCategories);
   }, []);
 
+  const handleClick = (e) => {
+    if (e.field === "view") {
+      navigate("detail");
+    } else if (e.field === "edit") {
+      navigate(`update/${e.row.maKhoaHoc}`);
+    } else if (e.field === "delete") {
+      // handleDelete(e);
+    }
+  };
+
   if (!courses || !categories) return <h1>Loading...</h1>;
 
   return (
@@ -118,7 +123,7 @@ const Courses = () => {
         </FormControl>
       </div>
 
-      <Table rows={courses} columns={columns} />
+      <Table rows={courses} columns={columns} handleClick={handleClick} />
     </div>
   );
 };

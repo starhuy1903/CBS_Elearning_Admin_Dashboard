@@ -9,17 +9,14 @@ import {
 import React from "react";
 
 import { useFormik } from "formik";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { BsFillTrashFill, BsPencilSquare } from "react-icons/bs";
 import { addUser, deleteUser, updateUser } from "../api/api";
 import { validatedUserSchema } from "../models/user";
 import swal from "sweetalert";
 
-const EditUser = () => {
+const UserForm = ({ userInfo }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const userInfo = location.state?.user;
-
   const isUpdating = userInfo ? true : false;
 
   const formik = useFormik({
@@ -182,4 +179,4 @@ const EditUser = () => {
   );
 };
 
-export default EditUser;
+export default UserForm;

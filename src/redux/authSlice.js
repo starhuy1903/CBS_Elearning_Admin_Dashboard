@@ -24,6 +24,20 @@ export const login = createAsyncThunk(
   }
 );
 
+export const fetchProfile = createAsyncThunk("auth/fetchProfile", async () => {
+  try {
+    const res = await api.request({
+      url: "/api/QuanLyNguoiDung/ThongTinNguoiDung",
+      method: "POST",
+    });
+
+    return res.data;
+  } catch (err) {
+    console.log(err);
+    console.log(err.response.data);
+  }
+});
+
 const initialState = {
   data: null,
   status: null,
@@ -46,7 +60,18 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.status = HTTP_STATUS.REJECTED;
         state.error = action.payload;
+      })
+      // .addCase(fetchProfile.pending, (state) => {
+      //   state.status = HTTP_STATUS.PENDING;
+      // })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        // state.status = HTTP_STATUS.FULFILLED;
+        state.data = action.payload;
       });
+    // .addCase(fetchProfile.rejected, (state, action) => {
+    //   state.status = HTTP_STATUS.REJECTED;
+    //   state.error = action.payload;
+    // })
   },
 });
 

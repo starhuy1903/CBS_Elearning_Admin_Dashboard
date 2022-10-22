@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { deleteUser, findUserByUsername, getUserList } from "../api/api";
 import { DataGrid } from "@mui/x-data-grid";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   BsSearch,
   BsEyeFill,
@@ -117,9 +117,9 @@ const Users = () => {
 
   const handleClick = (e) => {
     if (e.field === "view") {
-      navigate("/users/detail");
+      navigate("detail");
     } else if (e.field === "edit") {
-      navigate("/users/add", {
+      navigate("update", {
         state: {
           user: e.row,
         },
@@ -137,7 +137,7 @@ const Users = () => {
       <div className="flex justify-between my-4 ">
         <button
           className="bg-teal-400 hover:bg-teal-200 px-4 sm:px-6  py-2 sm:py-4 rounded-xl text-center font-semibold text-sm sm:text-lg"
-          onClick={() => navigate("/users/add")}
+          onClick={() => navigate("add")}
         >
           Add user
         </button>

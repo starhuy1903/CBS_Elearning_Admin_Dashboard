@@ -5,10 +5,13 @@ import "./App.css";
 import { AuthRoute, PrivateRoute } from "./GuardRoute";
 import Courses from "./pages/Courses";
 import Login from "./pages/Login";
-import EditUser from "./pages/EditUser";
 import Register from "./pages/Register";
 import Users from "./pages/Users";
 import UserDetail from "./pages/UserDetail";
+import AddUser from "./pages/AddUser";
+import UpdateUser from "./pages/UpdateUser";
+import AddCourse from "./pages/AddCourse";
+import UpdateCourse from "./pages/UpdateCourse";
 
 const App = () => {
   return (
@@ -17,11 +20,16 @@ const App = () => {
         <Route path="/" element={<PrivateRoute />}>
           <Route index element={<Users />} />
           <Route path="users">
-            <Route index element={<Users />}></Route>
-            <Route path="add" element={<EditUser />}></Route>
-            <Route path="detail" element={<UserDetail />}></Route>
+            <Route index element={<Users />} />
+            <Route path="add" element={<AddUser />} />
+            <Route path="update" element={<UpdateUser />} />
+            <Route path="detail" element={<UserDetail />} />
           </Route>
-          <Route path="courses" element={<Courses />} />
+          <Route path="courses">
+            <Route index element={<Courses />} />
+            <Route path="add" element={<AddCourse />} />
+            <Route path="update/:courseId" element={<UpdateCourse />} />
+          </Route>
           <Route path="register" element={<Register />} />
         </Route>
         <Route path="/login" element={<AuthRoute />}>

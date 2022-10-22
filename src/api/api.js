@@ -3,6 +3,9 @@ import swal from "sweetalert";
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_BASE_URL,
+  headers: {
+    TokenCybersoft: process.env.REACT_APP_TOKEN_CYBERSOFT,
+  },
 });
 
 api.interceptors.request.use((config) => {
