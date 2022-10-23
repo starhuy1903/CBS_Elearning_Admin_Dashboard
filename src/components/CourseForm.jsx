@@ -8,30 +8,47 @@ import {
   TextField,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
-import { BsFillTrashFill, BsPencilSquare } from "react-icons/bs";
+import { BsPencilSquare } from "react-icons/bs";
 import { getCourseCategories } from "../api/api";
-import swal from "sweetalert";
 import { validatedCourseSchema } from "../models/course";
 import { useDispatch } from "react-redux";
 import { addCourse, updateCourse } from "../redux/courseSlice";
+import Spinner from "./Spinner";
 
 const CourseForm = ({ courseInfo, isUpdating }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [categories, setCategories] = useState();
+  const [imgSrc, setImgSrc] = useState(null);
+  // const [selectedFile, setSelectedFile] = useState();
+  // const [preview, setPreview] = useState();
 
   const formik = useFormik({
     initialValues: courseInfo,
-    onSubmit: (values) => {
-      if (isUpdating) {
-        dispatch(updateCourse(values));
-      } else {
-        dispatch(addCourse(values));
+    onSubmit: (values, { resetForm }) => {
+      const formData = new FormData();
+      for (let key in values) {
+        if (key !== "hinhAnh") {
+          formData.append(key, values[key]);
+        } else {
+          // if (!values[key].includes("https")) {
+          //   formData.append("File", values[key], values[key].name);
+          // } else {
+          //   formData.append("hinhAnh", null);
+          // }
+          console.log(values[key]);
+          formData.append("hinhAnh", values[key], "hinhAnh.jpg");
+        }
       }
-      console.log(values);
+
+      if (isUpdating) {
+        dispatch(updateCourse(formData));
+      } else {
+        dispatch(addCourse(formData));
+      }
+      resetForm();
     },
     validationSchema: validatedCourseSchema,
     validateOnChange: false,
@@ -40,19 +57,61 @@ const CourseForm = ({ courseInfo, isUpdating }) => {
 
   console.log(formik.values);
 
+  const handleChangeFile = (e) => {
+    const file = e.target.files[0];
+
+    if ([("image/jpeg", "image/jpg", "image/png")].includes(file.type)) {
+      const reader = new FileReader();
+      const url = reader.readAsDataURL(file);
+
+      console.log(url);
+
+      reader.onload = (e) => {
+        setImgSrc(e.target.result);
+      };
+    }
+
+    formik.setFieldValue("hinhAnh", file);
+  };
+
+  // useEffect(() => {
+  //   if (!selectedFile) {
+  //     setPreview(undefined);
+  //     return;
+  //   }
+
+  //   const objectUrl = URL.createObjectURL(selectedFile);
+  //   setPreview(objectUrl);
+  //   console.log(objectUrl);
+  //   formik.setFieldValue("hinhAnh", objectUrl);
+
+  //   return () => URL.revokeObjectURL(objectUrl);
+  // }, [selectedFile]);
+
+  // console.log(imgSrc, formik.values.hinhAnh);
+
+  // const onSelectFile = (e) => {
+  //   if (!e.target.files || e.target.files.length === 0) {
+  //     setSelectedFile(undefined);
+  //     return;
+  //   }
+
+  //   setSelectedFile(e.target.files[0]);
+  // };
+
   useEffect(() => {
     getCourseCategories(setCategories);
   }, []);
 
-  if (!categories) return <h1>Loading...</h1>;
+  if (!categories) return <Spinner />;
 
   return (
     <Box
-      className="mt-24 md:m-10 p-8 md:p-10 bg-white rounded-3xl"
+      className="mt-12 md:m-10 p-8 md:p-10 bg-white rounded-3xl"
       component="form"
       onSubmit={formik.handleSubmit}
     >
-      <h1 className="text-center font-bold text-3xl my-8">
+      <h1 className="text-center font-bold text-3xl mb-8">
         {isUpdating ? "Update" : "Add"} course
       </h1>
       <div className="flex flex-wrap justify-center gap-4">
@@ -119,48 +178,20 @@ const CourseForm = ({ courseInfo, isUpdating }) => {
             {formik.touched.maDanhMucKhoaHoc && formik.errors.maDanhMucKhoaHoc}
           </FormHelperText>
         </FormControl>
-        {/* <TextField
-          disabled
-          value={formik.values.ngayTao.toISOString()}
-          id="outlined-disabled"
-          className="w-4/5 sm:w-2/5"
-        /> */}
         <div className="flex items-center space-x-6 w-4/5">
           <div className="shrink-0">
             <img
               className="h-16 w-16 object-cover rounded"
-              src={formik.values.hinhAnh}
+              src={imgSrc}
               alt=""
             />
           </div>
-          <label class="block">
-            <span class="sr-only">Choose profile photo</span>
-            {/* <TextField
-              error={
-                Boolean(formik.touched.hinhAnh) &&
-                Boolean(formik.errors.hinhAnh)
-              }
-              label="Image URL"
-              // value={formik.values.hinhAnh}
-              helperText={formik.touched.hinhAnh && formik.errors.hinhAnh}
-              name="hinhAnh"
-              type="file"
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className="block w-full text-sm text-slate-500
-      file:mr-4 file:py-2 file:px-4
-      file:rounded-full file:border-0
-      file:text-sm file:font-semibold
-      file:bg-violet-50 file:text-violet-700
-      hover:file:bg-violet-100"
-            /> */}
+          <label className="block">
+            <span className="sr-only">Choose profile photo</span>
             <input
               name="hinhAnh"
               type="file"
-              accept="image/png, image/jpeg"
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              value={formik.values.hinhAnh}
+              onChange={handleChangeFile}
               className="block w-full text-sm text-slate-500
       file:mr-4 file:py-2 file:px-4
       file:rounded-full file:border-0
@@ -171,6 +202,7 @@ const CourseForm = ({ courseInfo, isUpdating }) => {
             />
           </label>
         </div>
+
         <TextField
           label="Describe"
           name="moTa"
@@ -190,41 +222,6 @@ const CourseForm = ({ courseInfo, isUpdating }) => {
         >
           Cancel
         </button>
-
-        {isUpdating && (
-          <button
-            type="button"
-            className="bg-red-600 hover:bg-red-400 rounded-xl font-semibold text-sm sm:text-lg px-4 sm:px-6  py-2 sm:py-4 flex items-center"
-            onClick={() => {
-              swal({
-                title: "Warning",
-                text: "Are you sure to delete?",
-                icon: "warning",
-                buttons: {
-                  cancel: {
-                    text: "Cancel",
-                    value: false,
-                    visible: true,
-                    closeModal: true,
-                  },
-                  confirm: {
-                    text: "OK",
-                    value: true,
-                    visible: true,
-                    closeModal: true,
-                  },
-                },
-              }).then((isDeleted) => {
-                if (isDeleted) {
-                  //   deleteUser(userInfo.taiKhoan);
-                  //   navigate(-1);
-                }
-              });
-            }}
-          >
-            <BsFillTrashFill /> <span>Remove</span>
-          </button>
-        )}
 
         <button
           className="bg-teal-400 hover:bg-teal-200 px-4 sm:px-6  py-2 sm:py-4 rounded-xl text-center font-semibold text-sm sm:text-lg flex items-center"

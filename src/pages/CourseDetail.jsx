@@ -7,18 +7,19 @@ import { HTTP_STATUS } from "../api/httpStatusConstants";
 import Spinner from "../components/Spinner";
 import { handleConfirm } from "../utils/handleConfirm";
 import {
+  getCourseStudent,
   getRegisterStatus,
-  getStudiedCourseByUsername,
-  getWaitingCourseByUsername,
+  getUserListWaitingForApproval,
   resetRegisterStatus,
-  selectCourseOfStudent,
+  selectStudentOfCourse,
   subscribeCourse,
   unsubscribeCourse,
 } from "../redux/registerSlice";
 
 const leftColumns = [
-  { field: "maKhoaHoc", headerName: "Course Id", width: 130 },
-  { field: "tenKhoaHoc", headerName: "Course Name", width: 150 },
+  { field: "taiKhoan", headerName: "Username", width: 130 },
+  { field: "biDanh", headerName: "Aliases", width: 150 },
+  { field: "hoTen", headerName: "Full name", width: 150 },
   {
     field: "register",
     headerName: "Register",
@@ -40,8 +41,9 @@ const leftColumns = [
 ];
 
 const rightColumns = [
-  { field: "maKhoaHoc", headerName: "Course Id", width: 130 },
-  { field: "tenKhoaHoc", headerName: "Course Name", width: 150 },
+  { field: "taiKhoan", headerName: "Username", width: 130 },
+  { field: "biDanh", headerName: "Aliases", width: 150 },
+  { field: "hoTen", headerName: "Full name", width: 150 },
   {
     field: "cancel",
     headerName: "Cancel",
@@ -53,32 +55,32 @@ const rightColumns = [
   },
 ];
 
-const UserDetail = () => {
+const CourseDetail = () => {
   const [isLeft, setIsLeft] = useState(true);
-  const { username } = useParams();
+  const { courseId } = useParams();
   const dispatch = useDispatch();
-  const courses = useSelector(selectCourseOfStudent);
+  const students = useSelector(selectStudentOfCourse);
   const status = useSelector(getRegisterStatus);
 
   useEffect(() => {
     handleReload();
-  }, [dispatch, isLeft, username]);
+  }, [dispatch, isLeft, courseId]);
 
   const handleReload = () => {
     isLeft
-      ? dispatch(getWaitingCourseByUsername(username))
-      : dispatch(getStudiedCourseByUsername(username));
+      ? dispatch(getUserListWaitingForApproval(courseId))
+      : dispatch(getCourseStudent(courseId));
   };
 
   const handleClick = async (e) => {
     if (e.field === "register") {
-      await dispatch(subscribeCourse({ courseId: e.row.maKhoaHoc, username }));
+      await dispatch(subscribeCourse({ courseId, username: e.row.taiKhoan }));
       handleReload();
     } else if (e.field === "cancel") {
       handleConfirm(async (courseId, username) => {
         await dispatch(unsubscribeCourse({ courseId, username }));
         handleReload();
-      })(e.row.maKhoaHoc, username);
+      })(courseId, e.row.taiKhoan);
     }
   };
 
@@ -90,7 +92,7 @@ const UserDetail = () => {
   if (status === HTTP_STATUS.FULFILLED) {
     dispatch(resetRegisterStatus());
   }
-  if (!courses) {
+  if (!students) {
     return <Spinner />;
   }
 
@@ -98,7 +100,7 @@ const UserDetail = () => {
     <div className="mt-20">
       <header>
         <h1 className="text-xl sm:text-2xl text-center font-bold mb-4 sm:mb-8">
-          {username}
+          {courseId}
         </h1>
         <div className="flex justify-around">
           <h1
@@ -107,7 +109,7 @@ const UserDetail = () => {
             }`}
             onClick={() => setIsLeft(true)}
           >
-            Danh sach khoa hoc cho xet duyet
+            Danh sach hoc vien cho xet duyet
           </h1>
           <h1
             className={`rounded-r-xl ${headerButtonStyle} ${
@@ -115,14 +117,14 @@ const UserDetail = () => {
             }`}
             onClick={() => setIsLeft(false)}
           >
-            Danh sach khoa hoc da mua
+            Danh sach hoc vien khoa hoc
           </h1>
         </div>
       </header>
       <Table
-        rows={courses}
+        rows={students}
         columns={isLeft ? leftColumns : rightColumns}
-        getRowId={(row) => row.maKhoaHoc}
+        getRowId={(row) => row.taiKhoan}
         loading={status === HTTP_STATUS.PENDING}
         onCellClick={handleClick}
       />
@@ -130,4 +132,4 @@ const UserDetail = () => {
   );
 };
 
-export default UserDetail;
+export default CourseDetail;

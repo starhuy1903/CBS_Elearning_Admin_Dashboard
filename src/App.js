@@ -12,23 +12,26 @@ import AddUser from "./pages/AddUser";
 import UpdateUser from "./pages/UpdateUser";
 import AddCourse from "./pages/AddCourse";
 import UpdateCourse from "./pages/UpdateCourse";
+import CourseDetail from "./pages/CourseDetail";
+import Home from "./pages/Home";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PrivateRoute />}>
-          <Route index element={<Users />} />
+          <Route index element={<Home />} />
           <Route path="users">
             <Route index element={<Users />} />
             <Route path="add" element={<AddUser />} />
             <Route path="update" element={<UpdateUser />} />
-            <Route path="detail" element={<UserDetail />} />
+            <Route path="detail/:username" element={<UserDetail />} />
           </Route>
           <Route path="courses">
             <Route index element={<Courses />} />
             <Route path="add" element={<AddCourse />} />
             <Route path="update/:courseId" element={<UpdateCourse />} />
+            <Route path="detail/:courseId" element={<CourseDetail />} />
           </Route>
           <Route path="register" element={<Register />} />
         </Route>

@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { deleteUser, findUserByUsername, getUserList } from "../api/api";
-import { DataGrid } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import {
   BsSearch,
@@ -10,6 +8,19 @@ import {
 } from "react-icons/bs";
 import swal from "sweetalert";
 import { debounce } from "../utils/debounce";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  deleteUser,
+  findUserByUsername,
+  getUserList,
+  resetStatus,
+  selectUsers,
+  usersError,
+  usersStatus,
+} from "../redux/usersSlice";
+import { HTTP_STATUS } from "../api/httpStatusConstants";
+import Table from "../components/Table";
+import { handleConfirm } from "../utils/handleConfirm";
 
 const columns = [
   { field: "id", headerName: "ID", width: 40 },
@@ -60,64 +71,31 @@ const Users = () => {
   // const location = useLocation();
   // const curSearchTerm =
   //   new URLSearchParams(location.search).get("searchTerm") || "";
-  const [users, setUsers] = useState();
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const users = useSelector(selectUsers);
+  const error = useSelector(usersError);
+  const status = useSelector(usersStatus);
 
   useEffect(() => {
-    if (searchTerm !== "") {
-      findUserByUsername(searchTerm, setUsers);
-    } else {
-      getUserList(setUsers);
-    }
-  }, [searchTerm]);
+    if (status === HTTP_STATUS.IDLE) dispatch(getUserList());
+  }, [dispatch]);
 
-  const handleSearch = debounce((e) => {
-    const value = e.target.value;
-    // console.log(value);
-    // if (value === "") return;
-    setSearchTerm(value);
-    // navigate(`?searchTerm=${value}`);
+  const handleSearch = debounce((value) => {
+    value !== ""
+      ? dispatch(findUserByUsername(value))
+      : dispatch(getUserList());
   }, 1000);
 
-  const handleDelete = (e) => {
-    swal({
-      title: "Warning",
-      text: "Are you sure to delete?",
-      icon: "warning",
-      buttons: {
-        cancel: {
-          text: "Cancel",
-          value: false,
-          visible: true,
-          closeModal: true,
-        },
-        confirm: {
-          text: "OK",
-          value: true,
-          visible: true,
-          closeModal: true,
-        },
-      },
-    }).then((isDeleted) => {
-      if (isDeleted) {
-        (async () => {
-          const res = await deleteUser(e.row.taiKhoan);
-          if (res.status === 200) {
-            if (searchTerm !== "") {
-              findUserByUsername(searchTerm, setUsers);
-            } else {
-              getUserList(setUsers);
-            }
-          }
-        })();
-      }
-    });
-  };
+  const onDeleteHandle = handleConfirm(async (e) => {
+    await dispatch(deleteUser(e.row.taiKhoan));
+    handleSearch(searchTerm);
+  });
 
   const handleClick = (e) => {
     if (e.field === "view") {
-      navigate("detail");
+      navigate(`detail/${e.row.taiKhoan}`);
     } else if (e.field === "edit") {
       navigate("update", {
         state: {
@@ -125,11 +103,19 @@ const Users = () => {
         },
       });
     } else if (e.field === "delete") {
-      handleDelete(e);
+      onDeleteHandle(e);
     }
   };
 
-  if (!users) return <p>Loading...</p>;
+  if (status === HTTP_STATUS.FULFILLED) {
+    dispatch(resetStatus());
+  } else if (status === HTTP_STATUS.REJECTED) {
+    swal({
+      title: "Failed",
+      text: error,
+      icon: "error",
+    });
+  }
 
   return (
     <div className="mt-16 sm:mt-20 md:m-10 p-2 md:p-10 bg-white rounded-3xl">
@@ -144,23 +130,25 @@ const Users = () => {
         <div className="flex items-center border rounded p-2">
           <input
             type="text"
+            value={searchTerm}
             placeholder="Search"
             className="outline-0"
-            onChange={handleSearch}
+            onChange={(e) => {
+              handleSearch(e.target.value);
+              setSearchTerm(e.target.value);
+            }}
           />
           <BsSearch />
         </div>
       </div>
 
-      <div className="m-1 mt-4" style={{ height: 650, width: "100%" }}>
-        <DataGrid
-          rows={users}
-          columns={columns}
-          pageSize={10}
-          rowsPerPageOptions={[10]}
-          onCellClick={handleClick}
-        />
-      </div>
+      <Table
+        rows={users}
+        columns={columns}
+        onCellClick={handleClick}
+        getRowId={(row) => row.taiKhoan}
+        loading={status === HTTP_STATUS.PENDING}
+      />
     </div>
   );
 };

@@ -25,7 +25,7 @@ const Layout = ({ children }) => {
         <div className="fixed md:static bg-main-bg dark:bg-main-dark-bg navbar w-full">
           <Navbar />
         </div>
-        <div>{children}</div>
+        <div className="p-2 sm:p-4">{children}</div>
       </div>
     </div>
   );

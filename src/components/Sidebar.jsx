@@ -9,14 +9,12 @@ import {
 import { SiSololearn } from "react-icons/si";
 import { RiContactsLine } from "react-icons/ri";
 import { BsFillBookFill } from "react-icons/bs";
-import { BsPencilSquare } from "react-icons/bs";
 import { MdOutlineCancel } from "react-icons/md";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
 
 const links = [
   { name: "users", icon: <RiContactsLine /> },
   { name: "courses", icon: <BsFillBookFill /> },
-  { name: "register", icon: <BsPencilSquare /> },
 ];
 
 const Sidebar = () => {

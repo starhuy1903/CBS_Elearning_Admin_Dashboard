@@ -1,16 +1,23 @@
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { BsEyeFill, BsPencilSquare, BsFillTrashFill } from "react-icons/bs";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { getCourseCategories } from "../api/api";
+import { HTTP_STATUS } from "../api/httpStatusConstants";
+import Spinner from "../components/Spinner";
+import Table from "../components/Table";
 import {
-  getCourseCategories,
+  deleteCourse,
   getCourseList,
   getCourseListByCategory,
-} from "../api/api";
-import Table from "../components/Table";
+  getCourseStatus,
+  resetCourseStatus,
+  selectCourses,
+} from "../redux/courseSlice";
+import { handleConfirm } from "../utils/handleConfirm";
 
 const columns = [
-  { field: "id", headerName: "ID", width: 40, align: "center" },
   {
     field: "tenKhoaHoc",
     headerName: "Course Name",
@@ -65,36 +72,49 @@ const columns = [
 
 const Courses = () => {
   const navigate = useNavigate();
-  const [courses, setCourses] = useState();
+  const dispatch = useDispatch();
+  const status = useSelector(getCourseStatus);
+  const courses = useSelector(selectCourses);
   const [categories, setCategories] = useState();
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
-    if (selectedCategory !== "all") {
-      getCourseListByCategory(setCourses, selectedCategory);
-    } else {
-      getCourseList(setCourses);
-    }
+    handleReload();
   }, [selectedCategory]);
 
   useEffect(() => {
     getCourseCategories(setCategories);
   }, []);
 
+  const handleReload = () => {
+    selectedCategory !== "all"
+      ? dispatch(getCourseListByCategory(selectedCategory))
+      : dispatch(getCourseList());
+  };
+
+  const onDeleteHandle = handleConfirm(async (e) => {
+    await dispatch(deleteCourse(e.row.maKhoaHoc));
+    handleReload();
+  });
+
   const handleClick = (e) => {
     if (e.field === "view") {
-      navigate("detail");
+      navigate(`detail/${e.row.maKhoaHoc}`);
     } else if (e.field === "edit") {
       navigate(`update/${e.row.maKhoaHoc}`);
     } else if (e.field === "delete") {
-      // handleDelete(e);
+      onDeleteHandle(e);
     }
   };
 
-  if (!courses || !categories) return <h1>Loading...</h1>;
+  if (status === HTTP_STATUS.FULFILLED) {
+    dispatch(resetCourseStatus());
+  }
+
+  if (!courses || !categories) return <Spinner />;
 
   return (
-    <div className="mt-16 sm:mt-20 md:m-10 p-2 md:p-10 bg-white rounded-3xl">
+    <div className="mt-12 sm:mt-16 md:m-10 p-2 md:p-10 bg-white rounded-3xl">
       <h1 className="text-3xl text-center font-bold my-4">
         Courses Management
       </h1>
@@ -108,13 +128,14 @@ const Courses = () => {
         <FormControl className="w-1/2">
           <InputLabel>Course Category</InputLabel>
           <Select
+            label="Course Category"
             value={selectedCategory}
             onChange={(e) => {
               setSelectedCategory(e.target.value);
             }}
           >
             <MenuItem value="all">All</MenuItem>
-            {categories.map((category) => (
+            {categories?.map((category) => (
               <MenuItem key={category.maDanhMuc} value={category.maDanhMuc}>
                 {category.tenDanhMuc}
               </MenuItem>
@@ -123,7 +144,13 @@ const Courses = () => {
         </FormControl>
       </div>
 
-      <Table rows={courses} columns={columns} handleClick={handleClick} />
+      <Table
+        rows={courses}
+        columns={columns}
+        onCellClick={handleClick}
+        loading={status === HTTP_STATUS.PENDING}
+        getRowId={(row) => row.maKhoaHoc}
+      />
     </div>
   );
 };

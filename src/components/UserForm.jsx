@@ -7,17 +7,25 @@ import {
   TextField,
 } from "@mui/material";
 import React from "react";
-
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import { BsFillTrashFill, BsPencilSquare } from "react-icons/bs";
-import { addUser, deleteUser, updateUser } from "../api/api";
 import { validatedUserSchema } from "../models/user";
-import swal from "sweetalert";
+import { useDispatch, useSelector } from "react-redux";
+import { HTTP_STATUS } from "../api/httpStatusConstants";
+import {
+  usersStatus,
+  addUser,
+  updateUser,
+  resetStatus,
+} from "../redux/usersSlice";
+import Spinner from "./Spinner";
 
 const UserForm = ({ userInfo }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const isUpdating = userInfo ? true : false;
+  const submitStatus = useSelector(usersStatus);
 
   const formik = useFormik({
     initialValues: {
@@ -29,17 +37,8 @@ const UserForm = ({ userInfo }) => {
       maLoaiNguoiDung: userInfo?.maLoaiNguoiDung || "HV",
       maNhom: "GP02",
     },
-    onSubmit: async (values, { resetForm }) => {
-      let res;
-      if (isUpdating) {
-        res = await updateUser(values);
-      } else {
-        res = await addUser(values);
-      }
-
-      if (res.status === 200) {
-        navigate(-1);
-      }
+    onSubmit: (values, { resetForm }) => {
+      onSubmitUser(values);
       resetForm();
     },
     validationSchema: validatedUserSchema,
@@ -47,9 +46,20 @@ const UserForm = ({ userInfo }) => {
     validateOnBlur: true,
   });
 
+  const onSubmitUser = async (values) => {
+    if (submitStatus === HTTP_STATUS.IDLE) {
+      isUpdating ? dispatch(updateUser(values)) : dispatch(addUser(values));
+    }
+  };
+
+  if (submitStatus === HTTP_STATUS.FULFILLED) {
+    navigate(-1);
+    dispatch(resetStatus());
+  }
+
   return (
     <Box
-      className="mt-24 md:m-10 p-2 md:p-10 bg-white rounded-3xl"
+      className="mt-12 md:m-10 p-2 md:p-10 bg-white rounded-3xl"
       component="form"
       onSubmit={formik.handleSubmit}
     >
@@ -115,6 +125,7 @@ const UserForm = ({ userInfo }) => {
         <FormControl className="w-4/5 sm:w-2/5">
           <InputLabel>Type Account</InputLabel>
           <Select
+            label="Type Account"
             name="maLoaiNguoiDung"
             value={formik.values.maLoaiNguoiDung}
             onChange={formik.handleChange}
@@ -133,41 +144,6 @@ const UserForm = ({ userInfo }) => {
           Cancel
         </button>
 
-        {isUpdating && (
-          <button
-            type="button"
-            className="bg-red-600 hover:bg-red-400 rounded-xl font-semibold text-sm sm:text-lg px-4 sm:px-6  py-2 sm:py-4 flex items-center"
-            onClick={() => {
-              swal({
-                title: "Warning",
-                text: "Are you sure to delete?",
-                icon: "warning",
-                buttons: {
-                  cancel: {
-                    text: "Cancel",
-                    value: false,
-                    visible: true,
-                    closeModal: true,
-                  },
-                  confirm: {
-                    text: "OK",
-                    value: true,
-                    visible: true,
-                    closeModal: true,
-                  },
-                },
-              }).then((isDeleted) => {
-                if (isDeleted) {
-                  deleteUser(userInfo.taiKhoan);
-                  navigate(-1);
-                }
-              });
-            }}
-          >
-            <BsFillTrashFill /> <span>Remove</span>
-          </button>
-        )}
-
         <button
           className="bg-teal-400 hover:bg-teal-200 px-4 sm:px-6  py-2 sm:py-4 rounded-xl text-center font-semibold text-sm sm:text-lg flex items-center"
           type="submit"
@@ -175,6 +151,7 @@ const UserForm = ({ userInfo }) => {
           <BsPencilSquare /> <span>{userInfo ? "Update" : "Add"}</span>
         </button>
       </div>
+      {submitStatus === HTTP_STATUS.PENDING && <Spinner />}
     </Box>
   );
 };
